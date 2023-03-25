@@ -1,7 +1,5 @@
 {
 	"compilerOptions": {
-		"incremental": true,
-
 		"target": "ESNext",
 		"lib": ["DOM", "ESNext"],
 		"jsx": "react-jsx",
@@ -29,6 +27,8 @@
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedIndexedAccess": true,
 		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": true
+		"noPropertyAccessFromIndexSignature": true,
+
+		"skipLibCheck": true
 	}
 }
