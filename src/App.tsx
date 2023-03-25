@@ -30,7 +30,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import squareLogo from "./assets/square-logo.png";
 import horizontalLogo from "./assets/horizontal-logo.png";
 import {
-	createBrowserRouter,
+	createHashRouter,
 	Link,
 	Navigate,
 	Outlet,
@@ -181,7 +181,7 @@ const NcgDashboard: FC = () => {
 	);
 };
 
-const router = createBrowserRouter(
+const router = createHashRouter(
 	[
 		{
 			path: "/",
