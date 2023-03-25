@@ -181,33 +181,36 @@ const NcgDashboard: FC = () => {
 	);
 };
 
-const router = createBrowserRouter([
-	{
-		path: "/",
-		element: <NcgDashboard />,
-		errorElement: <ErrorBoundary />,
-		children: [
-			{
-				path: "/",
-				Component: () => {
-					if (workspaces[0]) {
-						return <Navigate replace to={workspaces[0].route} />;
-					} else {
-						return null
-					}
+const router = createBrowserRouter(
+	[
+		{
+			path: "/",
+			element: <NcgDashboard />,
+			errorElement: <ErrorBoundary />,
+			children: [
+				{
+					path: "/",
+					Component: () => {
+						if (workspaces[0]) {
+							return <Navigate replace to={workspaces[0].route} />;
+						} else {
+							return null;
+						}
+					},
 				},
-			},
-			...workspaces.map((workspace) => ({
-				path: workspace.route,
-				element: <div>{workspace.name}</div>,
-			})),
-			...pages.map((page) => ({
-				path: page.route,
-				element: <div>{page.name}</div>,
-			})),
-		],
-	},
-]);
+				...workspaces.map((workspace) => ({
+					path: workspace.route,
+					element: <div>{workspace.name}</div>,
+				})),
+				...pages.map((page) => ({
+					path: page.route,
+					element: <div>{page.name}</div>,
+				})),
+			],
+		},
+	],
+	{ basename: import.meta.env.BASE_URL }
+);
 
 const App: FC = () => (
 	<ThemeProvider theme={theme}>
