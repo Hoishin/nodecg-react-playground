@@ -2,3 +2,9 @@ root = true
 
 [*]
 indent_style = tab
+end_of_line = lf
+charset = utf-8
+
+[*.yml,*.md]
+indent_style = space
+indent_size = 2
