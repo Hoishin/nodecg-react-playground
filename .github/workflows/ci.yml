@@ -18,7 +18,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: |
-          echo "https://github-actions[bot]:${{ github.token }}@github.com" > ~/.git-credentials
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+          git remote set-url origin https://git:$GITHUB_TOKEN@github.com/${{ github.repository }}.git
           npm run deploy
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
