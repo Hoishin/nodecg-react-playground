@@ -19,7 +19,7 @@ jobs:
           node-version: "18"
           cache: "npm"
       - run: npm ci
-      - run: npm run build -- --base=/nodecg-react-playground
+      - run: npm run build
       - run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
