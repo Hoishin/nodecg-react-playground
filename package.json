@@ -6,7 +6,7 @@
     "dev:vite": "vite",
     "dev:tsc": "tsc -w --preserveWatchOutput",
     "build": "tsc && vite build",
-		"deploy": "gh-pages publish -d dist"
+    "deploy": "gh-pages publish -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
@@ -19,6 +19,7 @@
     "react-router-dom": "^6.9.0"
   },
   "devDependencies": {
+    "@types/node": "^18.15.9",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@vitejs/plugin-react-swc": "^3.0.0",
