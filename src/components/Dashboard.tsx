@@ -145,7 +145,8 @@ const Dashboard: FC = () => {
 			<Box
 				component="main"
 				flexGrow={1}
-				sx={{ overflowX: "hidden", overflowY: "scroll" }}
+				overflow='hidden auto'
+				padding={4}
 			>
 				<Outlet />
 			</Box>
