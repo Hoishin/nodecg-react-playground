@@ -13,11 +13,8 @@ interface PanelProps {
 	onElementResize: (position: { width: number; height: number }) => void;
 }
 
-const useElementResize = <T extends Element>(
-	ref: RefObject<T>,
-	onElementResize?: PanelProps["onElementResize"]
-) => {
-	const [position, setPosition] = useState({ width: 0, height: 0 });
+const useElementResize = <T extends Element>(ref: RefObject<T>) => {
+	const [size, setSize] = useState({ width: 0, height: 0 });
 	useEffect(() => {
 		if (!ref.current) {
 			return;
@@ -28,36 +25,31 @@ const useElementResize = <T extends Element>(
 			if (!entry) {
 				return;
 			}
-			setPosition((position) => {
-				if (
-					position.width === entry.contentRect.width &&
-					position.height === entry.contentRect.height
-				) {
+			setSize((position) => {
+				const newWidth = entry.contentRect.width;
+				const newHeight = entry.contentRect.height;
+				if (position.width === newWidth && position.height === newHeight) {
 					return position;
 				}
-				if (onElementResize) {
-					onElementResize({
-						width: entry.contentRect.width,
-						height: entry.contentRect.height,
-					});
-				}
-				return {
-					width: entry.contentRect.width,
-					height: entry.contentRect.height,
-				};
+				return { width: newWidth, height: newHeight };
 			});
 		});
 		observer.observe(container);
 		return () => {
 			observer.disconnect();
 		};
-	}, [onElementResize]);
-	return position;
+	}, []);
+
+	return size;
 };
 
 const Panel: FC<PanelProps> = (props) => {
 	const containerRef = useRef<HTMLDivElement>(null);
-	useElementResize(containerRef, props.onElementResize);
+	const size = useElementResize(containerRef);
+
+	useEffect(() => {
+		props.onElementResize(size);
+	}, [size]);
 
 	return (
 		<Card
@@ -104,13 +96,11 @@ const Workspace: FC<Props> = (props) => {
 		right: number;
 	}> = [];
 
+	const topLeftCorners: Array<{ top: number; left: number }> = [
+		{ top: 0, left: 0 },
+	];
 	const panelsAreReady = panelSizes.some((panel) => panel.width !== 0);
-
 	if (panelsAreReady) {
-		const topLeftCorners: Array<{ top: number; left: number }> = [
-			{ top: 0, left: 0 },
-		];
-
 		for (const size of panelSizes) {
 			topLeftCorners.sort((a, b) => {
 				if (a.top === b.top) {
@@ -118,7 +108,6 @@ const Workspace: FC<Props> = (props) => {
 				}
 				return a.top - b.top;
 			});
-			console.table(topLeftCorners);
 			const fittingCornerIndex = topLeftCorners.findIndex((corner) => {
 				const tmpRight = corner.left + size.width;
 				const tmpBottom = corner.top + size.height;
@@ -150,7 +139,10 @@ const Workspace: FC<Props> = (props) => {
 			const right = left + size.width;
 
 			const rightPanels = panelPositions
-				.filter((position) => right + GAP < position.right)
+				.filter(
+					(position) =>
+						right + GAP < position.right && position.bottom < bottom + GAP
+				)
 				.sort((a, b) => b.bottom - a.bottom);
 			rightPanels.push({
 				top: -Infinity,
@@ -169,7 +161,10 @@ const Workspace: FC<Props> = (props) => {
 				}
 			}
 			const belowPanels = panelPositions
-				.filter((position) => bottom + GAP < position.bottom)
+				.filter(
+					(position) =>
+						bottom + GAP < position.bottom && position.right < right + GAP
+				)
 				.sort((a, b) => b.right - a.right);
 			belowPanels.push({
 				top: 0,
@@ -213,6 +208,11 @@ const Workspace: FC<Props> = (props) => {
 					/>
 				);
 			})}
+			{topLeftCorners.map((corner, i) => (
+				<Box key={i} position="absolute" top={corner.top} left={corner.left}>
+					↖{i}
+				</Box>
+			))}
 		</Box>
 	);
 };
