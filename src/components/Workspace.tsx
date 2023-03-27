@@ -1,6 +1,12 @@
 import { throttle } from "@github/mini-throttle";
 import Box from "@mui/material/Box";
-import { FC, useCallback, useLayoutEffect, useState } from "react";
+import {
+	FC,
+	useCallback,
+	useLayoutEffect,
+	useMemo,
+	useState,
+} from "react";
 
 import { useElementResize } from "../hooks/useElementResize";
 
@@ -38,7 +44,7 @@ const Workspace: FC<Props> = (props) => {
 	const [corners, setCorners] = useState<Coordinate[]>([]);
 
 	const calculatePanelPositions = useCallback(
-		throttle((panelSizes: Size[], containerWidth: number) => {
+		(panelSizes: Size[], containerWidth: number) => {
 			const _panelPositions: PanelPosition[] = [];
 			const _corners: Coordinate[] = [{ x: 0, y: 0 }];
 
@@ -128,13 +134,18 @@ const Workspace: FC<Props> = (props) => {
 
 			setPanelPositions(_panelPositions);
 			setCorners(_corners);
-		}, 200),
+		},
 		[]
 	);
 
+	const throttledCalculatePanelPositions = useMemo(
+		() => throttle(calculatePanelPositions, 200),
+		[calculatePanelPositions]
+	);
+
 	useLayoutEffect(() => {
-		calculatePanelPositions(panelSizes, containerWidth);
-	}, [panelSizes, containerWidth, calculatePanelPositions]);
+		throttledCalculatePanelPositions(panelSizes, containerWidth);
+	}, [panelSizes, containerWidth, throttledCalculatePanelPositions]);
 
 	return (
 		<Box ref={containerRef} position="relative" width="100%" height="100%">
