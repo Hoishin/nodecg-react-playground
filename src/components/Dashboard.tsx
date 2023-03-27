@@ -1,8 +1,10 @@
-import { FC, useState } from "react";
+import Close from "@mui/icons-material/Close";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import Menu from "@mui/icons-material/Menu";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
 import Divider from "@mui/material/Divider";
+import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -12,14 +14,13 @@ import ListItemText from "@mui/material/ListItemText";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Toolbar from "@mui/material/Toolbar";
-import Menu from "@mui/icons-material/Menu";
-import Close from "@mui/icons-material/Close";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import squareLogo from "../assets/square-logo.png";
-import horizontalLogo from "../assets/horizontal-logo.png";
+import { FC, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { theme } from "../App";
+
+import horizontalLogo from "../assets/horizontal-logo.png";
+import squareLogo from "../assets/square-logo.png";
 import { workspaces, pages } from "../router";
+import { theme } from "../theme";
 
 const Dashboard: FC = () => {
 	const [drawerOpened, setDrawerOpened] = useState(false);

@@ -1,11 +1,12 @@
+import FileUpload from '@mui/icons-material/FileUpload'
 import Visibility from '@mui/icons-material/Visibility'
 import VolumeUp from '@mui/icons-material/VolumeUp'
-import FileUpload from '@mui/icons-material/FileUpload'
+import { loremIpsum } from "lorem-ipsum";
 import { Navigate, createHashRouter } from "react-router-dom";
+
 import Dashboard from "./components/Dashboard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Workspace from "./components/Workspace";
-import { loremIpsum } from "lorem-ipsum";
 
 const randomInt = (max: number) => {
 	return Math.ceil(Math.random() * max);

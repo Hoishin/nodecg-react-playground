@@ -1,8 +1,10 @@
-import { FC, RefObject, useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardHeader from "@mui/material/CardHeader";
+import { FC, useEffect, useState } from "react";
+
+import { useElementResize } from "../hooks/useElementResize";
 
 interface PanelProps {
 	name: string;
@@ -13,43 +15,12 @@ interface PanelProps {
 	onElementResize: (position: { width: number; height: number }) => void;
 }
 
-const useElementResize = <T extends Element>(ref: RefObject<T>) => {
-	const [size, setSize] = useState({ width: 0, height: 0 });
-	useEffect(() => {
-		if (!ref.current) {
-			return;
-		}
-		const container = ref.current;
-		const observer = new ResizeObserver((entries) => {
-			const entry = entries[0];
-			if (!entry) {
-				return;
-			}
-			setSize((position) => {
-				const newWidth = entry.contentRect.width;
-				const newHeight = entry.contentRect.height;
-				if (position.width === newWidth && position.height === newHeight) {
-					return position;
-				}
-				return { width: newWidth, height: newHeight };
-			});
-		});
-		observer.observe(container);
-		return () => {
-			observer.disconnect();
-		};
-	}, []);
-
-	return size;
-};
-
 const Panel: FC<PanelProps> = (props) => {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const size = useElementResize(containerRef);
+	const [containerRef, containerSize] = useElementResize<HTMLDivElement>();
 
 	useEffect(() => {
-		props.onElementResize(size);
-	}, [size]);
+		props.onElementResize(containerSize);
+	}, [containerSize]);
 
 	return (
 		<Card
@@ -77,17 +48,18 @@ interface Props {
 }
 
 const Workspace: FC<Props> = (props) => {
-	const panels = props.panels.map((panel) => ({
+	const panels = props.panels
+	.map((panel) => ({
 		...panel,
 		width: 128 + 144 * (panel.width - 1),
-	}));
+	}))
 
 	const [panelSizes, setPanelSizes] = useState(() =>
 		panels.map(() => ({ width: 0, height: 0 }))
 	);
+	console.table(panelSizes)
 
-	const containerRef = useRef<HTMLDivElement>(null);
-	const { width: containerWidth } = useElementResize(containerRef);
+	const [containerRef, { width: containerWidth }] = useElementResize();
 
 	const panelPositions: Array<{
 		top: number;
