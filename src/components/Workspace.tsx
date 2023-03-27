@@ -104,103 +104,105 @@ const Workspace: FC<Props> = (props) => {
 		right: number;
 	}> = [];
 
-	let maxHeightPanel = { bottom: 0, right: 0 };
+	const panelsAreReady = panelSizes.some((panel) => panel.width !== 0);
 
-	const topLeftCorners: Array<{
-		top: number;
-		left: number;
-		topAdjasentPanel: { bottom: number; right: number };
-		leftAdjasentPanel: { bottom: number; right: number };
-	}> = [
-		{
-			top: 0,
-			left: 0,
-			topAdjasentPanel: { bottom: 0, right: containerWidth },
-			leftAdjasentPanel: { bottom: Infinity, right: 0 },
-		},
-	];
+	if (panelsAreReady) {
+		const topLeftCorners: Array<{ top: number; left: number }> = [
+			{ top: 0, left: 0 },
+		];
 
-	for (const size of panelSizes) {
-		const fittingCornerIndex = topLeftCorners.findIndex((corner) => {
-			const tmpRight = corner.left + size.width;
-			const tmpBottom = corner.top + size.height;
-			if (containerWidth < tmpRight) {
-				return;
+		for (const size of panelSizes) {
+			topLeftCorners.sort((a, b) => {
+				if (a.top === b.top) {
+					return a.left - b.left;
+				}
+				return a.top - b.top;
+			});
+			console.table(topLeftCorners);
+			const fittingCornerIndex = topLeftCorners.findIndex((corner) => {
+				const tmpRight = corner.left + size.width;
+				const tmpBottom = corner.top + size.height;
+				if (containerWidth < tmpRight) {
+					return;
+				}
+				const overlapsWithOtherPanel = panelPositions.some(
+					(position) =>
+						position.left - GAP < tmpRight &&
+						corner.left < position.right + GAP &&
+						position.top - GAP < tmpBottom &&
+						corner.top < position.bottom + GAP
+				);
+				return !overlapsWithOtherPanel;
+			});
+			const fittingCorner = topLeftCorners[fittingCornerIndex];
+
+			if (fittingCornerIndex !== -1) {
+				topLeftCorners.splice(fittingCornerIndex, 1);
 			}
-			const overlapsWithOtherPanel = panelPositions.some(
-				(position) =>
-					position.left - GAP < tmpRight &&
-					corner.left < position.right + GAP &&
-					position.top - GAP < tmpBottom &&
-					corner.top < position.bottom + GAP
-			);
-			return !overlapsWithOtherPanel;
-		});
-		const fittingCorner = topLeftCorners[fittingCornerIndex] ?? {
-			top: maxHeightPanel.bottom + GAP,
-			left: 0,
-			topAdjasentPanel: maxHeightPanel,
-			leftAdjasentPanel: { bottom: Infinity, right: 0 },
-		};
-		if (fittingCornerIndex !== -1) {
-			topLeftCorners.splice(fittingCornerIndex, 1);
-		}
-		const top = fittingCorner.top;
-		const left = fittingCorner.left;
-		const bottom = top + size.height;
-		const right = left + size.width;
-		if (fittingCorner.topAdjasentPanel.right > right) {
-			topLeftCorners.push({
-				top: fittingCorner.top,
-				left: right + GAP,
-				topAdjasentPanel: fittingCorner.topAdjasentPanel,
-				leftAdjasentPanel: { bottom, right },
+
+			if (!fittingCorner) {
+				continue;
+			}
+
+			const top = fittingCorner.top;
+			const left = fittingCorner.left;
+			const bottom = top + size.height;
+			const right = left + size.width;
+
+			const rightPanels = panelPositions
+				.filter((position) => right + GAP < position.right)
+				.sort((a, b) => b.bottom - a.bottom);
+			rightPanels.push({
+				top: -Infinity,
+				left: 0,
+				bottom: -GAP,
+				right: Infinity,
 			});
-		} else if (fittingCorner.topAdjasentPanel.right < right) {
-			const topAdjasent = panelPositions.find(
-				(position) =>
-					position.bottom < top &&
-					position.left < right &&
-					right < position.right
-			);
-			topLeftCorners.push({
-				top: topAdjasent ? topAdjasent.bottom + GAP : 0,
-				left: right + GAP,
-				topAdjasentPanel: topAdjasent
-					? { bottom: topAdjasent.bottom, right: topAdjasent.right }
-					: { bottom: 0, right: containerWidth },
-				leftAdjasentPanel: { bottom, right },
+			let maxRight = Infinity;
+			for (const rightPanel of rightPanels) {
+				if (rightPanel.left < maxRight) {
+					maxRight = rightPanel.left;
+					topLeftCorners.push({
+						top: rightPanel.bottom + GAP,
+						left: right + GAP,
+					});
+				}
+			}
+			const belowPanels = panelPositions
+				.filter((position) => bottom + GAP < position.bottom)
+				.sort((a, b) => b.right - a.right);
+			belowPanels.push({
+				top: 0,
+				left: -Infinity,
+				bottom: Infinity,
+				right: -GAP,
 			});
+			let maxBottom = Infinity;
+			for (const belowPanel of belowPanels) {
+				if (belowPanel.top < maxBottom) {
+					maxBottom = belowPanel.top;
+					topLeftCorners.push({
+						top: bottom + GAP,
+						left: belowPanel.right + GAP,
+					});
+				}
+			}
+			panelPositions.push({ top, left, bottom, right });
 		}
-		if (fittingCorner.leftAdjasentPanel.bottom > bottom) {
-			topLeftCorners.push({
-				top: bottom + GAP,
-				left: fittingCorner.left,
-				topAdjasentPanel: { bottom, right },
-				leftAdjasentPanel: fittingCorner.leftAdjasentPanel,
-			});
-		}
-		if (maxHeightPanel.bottom < bottom) {
-			maxHeightPanel = { bottom, right };
-		}
-		panelPositions.push({ top, left, bottom, right });
 	}
 
 	return (
 		<Box ref={containerRef} position="relative" width="100%" height="100%">
 			{panels.map((panel, i) => {
 				const position = panelPositions[i];
-				if (!position) {
-					return null;
-				}
 				return (
 					<Panel
 						key={panel.name}
 						name={panel.name}
 						content={panel.content}
 						width={panel.width}
-						top={position.top}
-						left={position.left}
+						top={position?.top ?? 0}
+						left={position?.left ?? 0}
 						onElementResize={({ width, height }) => {
 							setPanelSizes((panelSizes) => {
 								const newPanelSizes = [...panelSizes];
