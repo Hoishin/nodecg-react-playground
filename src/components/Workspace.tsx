@@ -48,16 +48,14 @@ interface Props {
 }
 
 const Workspace: FC<Props> = (props) => {
-	const panels = props.panels
-	.map((panel) => ({
+	const panels = props.panels.map((panel) => ({
 		...panel,
 		width: 128 + 144 * (panel.width - 1),
-	}))
+	}));
 
 	const [panelSizes, setPanelSizes] = useState(() =>
 		panels.map(() => ({ width: 0, height: 0 }))
 	);
-	console.table(panelSizes)
 
 	const [containerRef, { width: containerWidth }] = useElementResize();
 
