@@ -1,4 +1,6 @@
-import { Visibility, VolumeUp, FileUpload } from "@mui/icons-material";
+import Visibility from '@mui/icons-material/Visibility'
+import VolumeUp from '@mui/icons-material/VolumeUp'
+import FileUpload from '@mui/icons-material/FileUpload'
 import { Navigate, createHashRouter } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
 import ErrorBoundary from "./components/ErrorBoundary";

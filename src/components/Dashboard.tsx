@@ -1,20 +1,20 @@
 import { FC, useState } from "react";
-import {
-	AppBar,
-	Box,
-	Drawer,
-	Divider,
-	IconButton,
-	List,
-	ListItem,
-	ListItemButton,
-	ListItemIcon,
-	ListItemText,
-	Tab,
-	Tabs,
-	Toolbar,
-} from "@mui/material";
-import { Menu, Close, Dashboard as DashboardIcon } from "@mui/icons-material";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import Toolbar from "@mui/material/Toolbar";
+import Menu from "@mui/icons-material/Menu";
+import Close from "@mui/icons-material/Close";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import squareLogo from "../assets/square-logo.png";
 import horizontalLogo from "../assets/horizontal-logo.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
@@ -142,12 +142,7 @@ const Dashboard: FC = () => {
 					</Box>
 				</Drawer>
 			</Box>
-			<Box
-				component="main"
-				flexGrow={1}
-				overflow='hidden auto'
-				padding={4}
-			>
+			<Box component="main" flexGrow={1} overflow="hidden auto" padding={4}>
 				<Outlet />
 			</Box>
 		</Box>

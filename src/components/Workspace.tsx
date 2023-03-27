@@ -1,5 +1,8 @@
 import { FC, RefObject, useEffect, useRef, useState } from "react";
-import { Box, Card, CardContent, CardHeader } from "@mui/material";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardHeader from "@mui/material/CardHeader";
 
 interface PanelProps {
 	name: string;
@@ -151,6 +154,21 @@ const Workspace: FC<Props> = (props) => {
 				top: fittingCorner.top,
 				left: right + GAP,
 				topAdjasentPanel: fittingCorner.topAdjasentPanel,
+				leftAdjasentPanel: { bottom, right },
+			});
+		} else if (fittingCorner.topAdjasentPanel.right < right) {
+			const topAdjasent = panelPositions.find(
+				(position) =>
+					position.bottom < top &&
+					position.left < right &&
+					right < position.right
+			);
+			topLeftCorners.push({
+				top: topAdjasent ? topAdjasent.bottom + GAP : 0,
+				left: right + GAP,
+				topAdjasentPanel: topAdjasent
+					? { bottom: topAdjasent.bottom, right: topAdjasent.right }
+					: { bottom: 0, right: containerWidth },
 				leftAdjasentPanel: { bottom, right },
 			});
 		}

@@ -1,5 +1,7 @@
 import { FC } from "react";
-import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import CssBaseline from "@mui/material/CssBaseline";
+import ThemeProvider from "@mui/material/styles/ThemeProvider";
+import createTheme from "@mui/material/styles/createTheme";
 
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
