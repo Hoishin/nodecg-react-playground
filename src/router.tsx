@@ -12,7 +12,7 @@ const randomInt = (max: number) => {
 };
 
 const createSamplePanels = (id: string) =>
-	Array.from({ length: 10 }).map((_, i) => ({
+	Array.from({ length: 5 }).map((_, i) => ({
 		name: `${id} ${i}`,
 		width: randomInt(8),
 		content: loremIpsum({ count: randomInt(5) }),

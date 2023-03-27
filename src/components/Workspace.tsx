@@ -112,7 +112,7 @@ const Workspace: FC<Props> = (props) => {
 				const tmpRight = corner.left + size.width;
 				const tmpBottom = corner.top + size.height;
 				if (containerWidth < tmpRight) {
-					return;
+					return corner.left === 0;
 				}
 				const overlapsWithOtherPanel = panelPositions.some(
 					(position) =>
