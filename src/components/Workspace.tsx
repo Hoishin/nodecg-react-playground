@@ -24,10 +24,18 @@ interface PanelPosition {
 	right: number;
 }
 
-const calcPositions = (panelSizes: Size[], containerWidth: number) => {
-	const panelPositions: PanelPosition[] = [];
+interface Coordinate {
+	x: number;
+	y: number;
+}
 
-	const corners = [{ x: 0, y: 0 }];
+const Workspace: FC<Props> = (props) => {
+	const [containerRef, { width: containerWidth }] = useElementResize();
+	const [panelSizes, setPanelSizes] = useState<Size[]>([]);
+
+	const panelPositions: PanelPosition[] = [];
+	const corners: Coordinate[] = [{ x: 0, y: 0 }];
+
 	const addCorner = (x: number, y: number) => {
 		const alreadyExists = corners.some(
 			(corner) => corner.x === x && corner.y === y
@@ -35,9 +43,9 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 		if (alreadyExists) {
 			return;
 		}
-			if (containerWidth <= x) {
-				return;
-			}
+		if (containerWidth <= x) {
+			return;
+		}
 		for (const position of panelPositions) {
 			const insidePanel =
 				position.left - GAP < x &&
@@ -52,25 +60,25 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 	};
 
 	for (const size of panelSizes) {
-			const fittingCorner = [...corners]
-				.sort((a, b) => {
-					return a.y - b.y || a.x - b.x;
-				})
-				.find((corner) => {
-			const tmpRight = corner.x + size.width;
-			const tmpBottom = corner.y + size.height;
-			if (containerWidth < tmpRight && corner.x !== 0) {
-				return false;
-			}
-			const overlapsWithOtherPanel = panelPositions.some(
-				(position) =>
-					position.left - GAP < tmpRight &&
-					corner.x < position.right + GAP &&
-					position.top - GAP < tmpBottom &&
-					corner.y < position.bottom + GAP
-			);
-			return !overlapsWithOtherPanel;
-		});
+		const fittingCorner = [...corners]
+			.sort((a, b) => {
+				return a.y - b.y || a.x - b.x;
+			})
+			.find((corner) => {
+				const tmpRight = corner.x + size.width;
+				const tmpBottom = corner.y + size.height;
+				if (containerWidth < tmpRight && corner.x !== 0) {
+					return false;
+				}
+				const overlapsWithOtherPanel = panelPositions.some(
+					(position) =>
+						position.left - GAP < tmpRight &&
+						corner.x < position.right + GAP &&
+						position.top - GAP < tmpBottom &&
+						corner.y < position.bottom + GAP
+				);
+				return !overlapsWithOtherPanel;
+			});
 
 		if (!fittingCorner) {
 			continue;
@@ -82,9 +90,7 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 		const right = left + size.width;
 
 		const rightPanels = panelPositions
-			.filter(
-					(position) => right < position.right && position.bottom < bottom
-			)
+			.filter((position) => right < position.right && position.bottom < bottom)
 			.sort((a, b) => b.bottom - a.bottom);
 		let maxX = Infinity;
 		for (const rightPanel of rightPanels) {
@@ -96,9 +102,7 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 		addCorner(right + GAP, 0);
 
 		const belowPanels = panelPositions
-			.filter(
-					(position) => bottom < position.bottom && position.right < right
-			)
+			.filter((position) => bottom < position.bottom && position.right < right)
 			.sort((a, b) => b.right - a.right);
 		let maxY = Infinity;
 		for (const belowPanel of belowPanels) {
@@ -111,14 +115,6 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 
 		panelPositions.push({ top, left, bottom, right });
 	}
-	return { panelPositions, corners };
-};
-
-const Workspace: FC<Props> = (props) => {
-	const [containerRef, { width: containerWidth }] = useElementResize();
-	const [panelSizes, setPanelSizes] = useState<Size[]>([]);
-
-	const { panelPositions, corners } = calcPositions(panelSizes, containerWidth);
 
 	return (
 		<Box ref={containerRef} position="relative" width="100%" height="100%">
