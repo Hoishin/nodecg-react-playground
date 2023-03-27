@@ -1,29 +1,9 @@
 import { FC, RefObject, useEffect, useRef, useState } from "react";
 import { Box, Card, CardContent, CardHeader } from "@mui/material";
-import { loremIpsum } from "lorem-ipsum";
-
-interface Props {
-	name: string;
-	panels: string[];
-}
-
-const randomInt = (max: number) => {
-	return Math.ceil(Math.random() * max);
-};
-
-const SAMPLE_PANELS = [
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-	{ width: randomInt(8) },
-];
 
 interface PanelProps {
 	name: string;
+	content: string;
 	width: number;
 	top: number;
 	left: number;
@@ -73,9 +53,6 @@ const useElementResize = <T extends Element>(
 };
 
 const Panel: FC<PanelProps> = (props) => {
-	const [contentLorem, setContentLorem] = useState(
-		loremIpsum({ count: randomInt(5) })
-	);
 	const containerRef = useRef<HTMLDivElement>(null);
 	useElementResize(containerRef, props.onElementResize);
 
@@ -88,21 +65,25 @@ const Panel: FC<PanelProps> = (props) => {
 				position: "absolute",
 				top: props.top,
 				left: props.left,
-			}}
-			onDoubleClick={() => {
-				setContentLorem(loremIpsum({ count: randomInt(5) }));
+				transitionProperty: "top, left",
 			}}
 		>
-			<CardHeader title={`Random Panel ${props.name}`} />
-			<CardContent>{contentLorem}</CardContent>
+			<CardHeader title={props.name} />
+			<CardContent>{props.content}</CardContent>
 		</Card>
 	);
 };
 
 const GAP = 16;
 
-const Workspace: FC<Props> = () => {
-	const panels = SAMPLE_PANELS.map((panel) => ({
+interface Props {
+	name: string;
+	panels: Array<{ width: number; content: string; name: string }>;
+}
+
+const Workspace: FC<Props> = (props) => {
+	const panels = props.panels.map((panel) => ({
+		...panel,
 		width: 128 + 144 * (panel.width - 1),
 	}));
 
@@ -111,7 +92,7 @@ const Workspace: FC<Props> = () => {
 	);
 
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { width } = useElementResize(containerRef);
+	const { width: containerWidth } = useElementResize(containerRef);
 
 	const panelPositions: Array<{
 		top: number;
@@ -131,20 +112,16 @@ const Workspace: FC<Props> = () => {
 		{
 			top: 0,
 			left: 0,
-			topAdjasentPanel: { bottom: 0, right: width },
+			topAdjasentPanel: { bottom: 0, right: containerWidth },
 			leftAdjasentPanel: { bottom: Infinity, right: 0 },
 		},
 	];
 
-	for (const [panelIndex, panel] of panels.entries()) {
-		const size = panelSizes[panelIndex];
-		if (!size) {
-			throw new Error("literally impossible");
-		}
+	for (const size of panelSizes) {
 		const fittingCornerIndex = topLeftCorners.findIndex((corner) => {
 			const tmpRight = corner.left + size.width;
 			const tmpBottom = corner.top + size.height;
-			if (width < tmpRight) {
+			if (containerWidth < tmpRight) {
 				return;
 			}
 			const overlapsWithOtherPanel = panelPositions.some(
@@ -189,7 +166,6 @@ const Workspace: FC<Props> = () => {
 			maxHeightPanel = { bottom, right };
 		}
 		panelPositions.push({ top, left, bottom, right });
-		console.log(JSON.stringify(topLeftCorners, null, 2));
 	}
 
 	return (
@@ -201,8 +177,9 @@ const Workspace: FC<Props> = () => {
 				}
 				return (
 					<Panel
-						key={i}
-						name={String(i)}
+						key={panel.name}
+						name={panel.name}
+						content={panel.content}
 						width={panel.width}
 						top={position.top}
 						left={position.left}

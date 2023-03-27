@@ -3,21 +3,33 @@ import { Navigate, createHashRouter } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Workspace from "./components/Workspace";
+import { loremIpsum } from "lorem-ipsum";
+
+const randomInt = (max: number) => {
+	return Math.ceil(Math.random() * max);
+};
+
+const createSamplePanels = (id: string) =>
+	Array.from({ length: 10 }).map((_, i) => ({
+		name: `${id} ${i}`,
+		width: randomInt(8),
+		content: loremIpsum({ count: randomInt(5) }),
+	}));
 
 export const workspaces = [
 	{
 		name: "Stream Tech",
 		route: "stream-tech",
 		default: true,
-		panels: ["aaa", "bbb", "ccc"],
+		panels: createSamplePanels("Stream Tech"),
 	},
-	{ name: "Audio Tech", route: "audio-tech", panels: ["aaa", "bbb", "ccc"] },
+	{ name: "Audio Tech", route: "audio-tech", panels: createSamplePanels("Audio Tech") },
 	{
 		name: "Interview Studio",
 		route: "interview-studio",
-		panels: ["aaa", "bbb", "ccc"],
+		panels: createSamplePanels("Interview"),
 	},
-	{ name: "Misc", route: "misc", panels: ["aaa", "bbb", "ccc"] },
+	{ name: "Misc", route: "misc", panels: createSamplePanels("Misc") },
 ];
 
 export const pages = [
