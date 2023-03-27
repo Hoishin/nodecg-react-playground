@@ -31,6 +31,7 @@ const Panel: FC<Props> = (props) => {
 				top: props.top,
 				left: props.left,
 				transitionProperty: "top, left",
+				resize: "both",
 			}}
 		>
 			<CardHeader title={props.name} />

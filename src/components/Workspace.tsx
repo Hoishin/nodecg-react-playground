@@ -25,23 +25,37 @@ interface PanelPosition {
 }
 
 const calcPositions = (panelSizes: Size[], containerWidth: number) => {
-	const corners = [{ x: 0, y: 0 }];
-	const addCorner = (x: number, y: number) => {
-		const alreadyExists = corners.find(
-			(corner) => corner.x === x && corner.y === y
-		);
-		if (!alreadyExists) {
-			corners.push({ x, y });
-		}
-	};
-
 	const panelPositions: PanelPosition[] = [];
 
-	for (const size of panelSizes) {
+	const corners = [{ x: 0, y: 0 }];
+	const addCorner = (x: number, y: number) => {
+		const alreadyExists = corners.some(
+			(corner) => corner.x === x && corner.y === y
+		);
+		if (alreadyExists) {
+			return;
+		}
+
+		// If the new corner is inside an existing panel, don't add the corner
+		for (const position of panelPositions) {
+			const insidePanel =
+				position.left - GAP < x &&
+				x < position.right + GAP &&
+				position.top - GAP < y &&
+				y < position.bottom + GAP;
+			if (insidePanel) {
+				return;
+			}
+		}
+
+		corners.push({ x, y });
+
 		corners.sort((a, b) => {
 			return a.y - b.y || a.x - b.x;
 		});
+	};
 
+	for (const size of panelSizes) {
 		const fittingCorner = corners.find((corner) => {
 			const tmpRight = corner.x + size.width;
 			const tmpBottom = corner.y + size.height;
@@ -121,7 +135,16 @@ const Workspace: FC<Props> = (props) => {
 						top={position?.top ?? 0}
 						left={position?.left ?? 0}
 						onElementResize={({ width, height }) => {
+							if (width === 0 || height === 0) {
+								return;
+							}
 							setPanelSizes((panelSizes) => {
+								if (
+									width === panelSizes[i]?.width &&
+									height === panelSizes[i]?.height
+								) {
+									return panelSizes;
+								}
 								const newPanelSizes = [...panelSizes];
 								newPanelSizes[i] = { width, height };
 								return newPanelSizes;
