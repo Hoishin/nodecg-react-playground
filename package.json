@@ -6,6 +6,7 @@
     "dev:vite": "vite",
     "dev:tsc": "tsc -w --preserveWatchOutput",
     "build": "tsc && vite build",
+		"preview": "npm run build && vite preview",
     "deploy": "gh-pages publish -d dist"
   },
   "dependencies": {
