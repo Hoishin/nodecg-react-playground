@@ -35,8 +35,9 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 		if (alreadyExists) {
 			return;
 		}
-
-		// If the new corner is inside an existing panel, don't add the corner
+			if (containerWidth <= x) {
+				return;
+			}
 		for (const position of panelPositions) {
 			const insidePanel =
 				position.left - GAP < x &&
@@ -47,16 +48,15 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 				return;
 			}
 		}
-
 		corners.push({ x, y });
-
-		corners.sort((a, b) => {
-			return a.y - b.y || a.x - b.x;
-		});
 	};
 
 	for (const size of panelSizes) {
-		const fittingCorner = corners.find((corner) => {
+			const fittingCorner = [...corners]
+				.sort((a, b) => {
+					return a.y - b.y || a.x - b.x;
+				})
+				.find((corner) => {
 			const tmpRight = corner.x + size.width;
 			const tmpBottom = corner.y + size.height;
 			if (containerWidth < tmpRight && corner.x !== 0) {
@@ -83,8 +83,7 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 
 		const rightPanels = panelPositions
 			.filter(
-				(position) =>
-					right + GAP < position.right && position.bottom < bottom + GAP
+					(position) => right < position.right && position.bottom < bottom
 			)
 			.sort((a, b) => b.bottom - a.bottom);
 		let maxX = Infinity;
@@ -98,8 +97,7 @@ const calcPositions = (panelSizes: Size[], containerWidth: number) => {
 
 		const belowPanels = panelPositions
 			.filter(
-				(position) =>
-					bottom + GAP < position.bottom && position.right < right + GAP
+					(position) => bottom < position.bottom && position.right < right
 			)
 			.sort((a, b) => b.right - a.right);
 		let maxY = Infinity;
