@@ -11,7 +11,7 @@ interface Props {
 	width: number;
 	top: number;
 	left: number;
-	onElementResize: (position: { width: number; height: number; }) => void;
+	onElementResize: (position: { width: number; height: number }) => void;
 }
 
 const Panel: FC<Props> = (props) => {
@@ -39,4 +39,4 @@ const Panel: FC<Props> = (props) => {
 	);
 };
 
-export default Panel
+export default Panel;

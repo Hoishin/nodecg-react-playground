@@ -1,6 +1,6 @@
-import FileUpload from '@mui/icons-material/FileUpload'
-import Visibility from '@mui/icons-material/Visibility'
-import VolumeUp from '@mui/icons-material/VolumeUp'
+import FileUpload from "@mui/icons-material/FileUpload";
+import Visibility from "@mui/icons-material/Visibility";
+import VolumeUp from "@mui/icons-material/VolumeUp";
 import { loremIpsum } from "lorem-ipsum";
 import { Navigate, createHashRouter } from "react-router-dom";
 
@@ -13,9 +13,9 @@ const randomInt = (max: number) => {
 };
 
 const createSamplePanels = (id: string) =>
-	Array.from({ length: 5 }).map((_, i) => ({
+	Array.from({ length: 10 }).map((_, i) => ({
 		name: `${id} ${i}`,
-		width: randomInt(8),
+		width: randomInt(5),
 		content: loremIpsum({ count: randomInt(5) }),
 	}));
 
@@ -26,7 +26,11 @@ export const workspaces = [
 		default: true,
 		panels: createSamplePanels("Stream Tech"),
 	},
-	{ name: "Audio Tech", route: "audio-tech", panels: createSamplePanels("Audio Tech") },
+	{
+		name: "Audio Tech",
+		route: "audio-tech",
+		panels: createSamplePanels("Audio Tech"),
+	},
 	{
 		name: "Interview Studio",
 		route: "interview-studio",
@@ -49,14 +53,7 @@ export const router = createHashRouter([
 		children: [
 			{
 				path: "/",
-				Component: () => {
-					const defaultWorkspace = workspaces.find(
-						(workspace) => workspace.default
-					);
-					return defaultWorkspace ? (
-						<Navigate replace to={defaultWorkspace.route} />
-					) : null;
-				},
+				element: <Navigate replace to={workspaces[0]!.route} />,
 			},
 			...workspaces.map((workspace) => ({
 				path: workspace.route,
