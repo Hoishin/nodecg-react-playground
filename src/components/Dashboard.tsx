@@ -19,8 +19,8 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 
 import horizontalLogo from "../assets/horizontal-logo.png";
 import squareLogo from "../assets/square-logo.png";
-import { workspaces, pages } from "../router";
 import { theme } from "../theme";
+import { workspaces, pages } from "../utils/sample";
 
 const Dashboard: FC = () => {
 	const [drawerOpened, setDrawerOpened] = useState(false);
@@ -84,7 +84,7 @@ const Dashboard: FC = () => {
 									fontSize: 12,
 									".MuiTab-iconWrapper": { margin: 0 },
 								}}
-								icon={page.icon}
+								icon={<page.Icon />}
 								label={page.name}
 								to={`/${page.route}`}
 								value={`/${page.route}`}
@@ -134,7 +134,9 @@ const Dashboard: FC = () => {
 										to={`/${page.route}`}
 										onClick={() => setDrawerOpened(false)}
 									>
-										<ListItemIcon>{page.icon}</ListItemIcon>
+										<ListItemIcon>
+											<page.Icon />
+										</ListItemIcon>
 										<ListItemText primary={page.name} />
 									</ListItemButton>
 								</ListItem>
@@ -143,7 +145,7 @@ const Dashboard: FC = () => {
 					</Box>
 				</Drawer>
 			</Box>
-			<Box component="main" flexGrow={1} overflow="hidden auto" padding={4}>
+			<Box component="main" flexGrow={1} overflow="hidden scroll" padding={4}>
 				<Outlet />
 			</Box>
 		</Box>

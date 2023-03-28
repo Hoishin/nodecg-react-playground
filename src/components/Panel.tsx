@@ -1,7 +1,8 @@
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardHeader from "@mui/material/CardHeader";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
+import Draggable from "react-draggable";
 
 import { useElementResize } from "../hooks/useElementResize";
 
@@ -11,32 +12,52 @@ interface Props {
 	width: number;
 	top: number;
 	left: number;
-	onElementResize: (position: { width: number; height: number }) => void;
+	onElementResize: (size: { width: number; height: number }) => void;
+	onDrag: (x: number, y: number) => void;
 }
 
-const Panel: FC<Props> = (props) => {
+const Panel: FC<Props> = ({
+	onElementResize,
+	width,
+	top,
+	left,
+	name,
+	content,
+	onDrag,
+}) => {
+	const [focused, setFocused] = useState(false);
 	const [containerRef, containerSize] = useElementResize<HTMLDivElement>();
 
 	useEffect(() => {
-		props.onElementResize(containerSize);
-	}, [containerSize]);
+		onElementResize(containerSize);
+	}, [containerSize, onElementResize]);
 
 	return (
-		<Card
-			ref={containerRef}
-			raised
-			sx={{
-				width: props.width,
-				position: "absolute",
-				top: props.top,
-				left: props.left,
-				transitionProperty: "top, left",
-				resize: "both",
+		<Draggable
+			onStart={() => setFocused(true)}
+			onStop={() => setFocused(false)}
+			onDrag={(_, data) => {
+				onDrag(left + data.x, top + data.y);
 			}}
 		>
-			<CardHeader title={props.name} />
-			<CardContent>{props.content}</CardContent>
-		</Card>
+			<Card
+				ref={containerRef}
+				raised
+				sx={{
+					position: "absolute",
+					width,
+					top,
+					left,
+					transitionProperty: "top, left",
+					transitionDuration: "0.2s",
+					zIndex: focused ? 100 : 0,
+					backgroundColor: focused ? "primary.main" : "background.paper",
+				}}
+			>
+				<CardHeader title={name} />
+				<CardContent>{content}</CardContent>
+			</Card>
+		</Draggable>
 	);
 };
 
