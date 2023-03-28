@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import {
 	FC,
 	useCallback,
-	useLayoutEffect,
+	useEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -143,7 +143,7 @@ const Workspace: FC<Props> = (props) => {
 		[calculatePanelPositions]
 	);
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		throttledCalculatePanelPositions(panelSizes, containerWidth);
 	}, [panelSizes, containerWidth, throttledCalculatePanelPositions]);
 

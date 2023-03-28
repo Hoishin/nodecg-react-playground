@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ResizeObserverCallback = (entry: ResizeObserverEntry) => void;
 
@@ -40,7 +40,7 @@ export const useElementResize = <T extends Element>() => {
 	const ref = useRef<T>(null);
 	const [size, setSize] = useState({ width: 0, height: 0 });
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (!ref.current) {
 			return;
 		}
