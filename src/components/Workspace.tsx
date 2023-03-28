@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { useElementResize } from "../hooks/useElementResize";
 
@@ -47,8 +47,8 @@ const Workspace: FC<Props> = (props) => {
 			return;
 		}
 
-		const _panelPositions: PanelPosition[] = []
-		const _corners: Coordinate[] = [{ x: 0, y: 0 }];
+		const _panelPositions: PanelPosition[] = [];
+		const _corners: Coordinate[] = [{x: 0, y: 0}];
 
 		const addCorner = (x: number, y: number) => {
 			_corners.push({ x, y });

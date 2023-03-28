@@ -29,5 +29,5 @@ export const useEffectDebug = (
 			});
 		console.log(...changedDeps);
 		effect();
-	}, [...deps]);
+	}, [...deps]); // eslint-disable-line react-hooks/exhaustive-deps
 };
