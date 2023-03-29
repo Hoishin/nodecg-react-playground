@@ -1,4 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+
+export const useStateDebug = <T>(state: T, method: "log" | "table" = 'log') => {
+	useEffect(() => {
+		console[method](state);
+	}, [state, method]);
+};
 
 const usePrevious = <T>(value: T, initialValue: T) => {
 	const ref = useRef(initialValue);
@@ -31,3 +37,9 @@ export const useEffectDebug = (
 		effect();
 	}, [...deps]); // eslint-disable-line react-hooks/exhaustive-deps
 };
+
+export const useMemoDebug = <T>(factory: () => T, deps: React.DependencyList) => {
+	useEffectDebug(() => {}, deps);
+	const value = useMemo(factory, deps); // eslint-disable-line react-hooks/exhaustive-deps
+	return value;
+}

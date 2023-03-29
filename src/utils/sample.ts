@@ -6,7 +6,7 @@ import { loremIpsum } from "lorem-ipsum";
 import { randomInt } from "./randomInt";
 
 const createSamplePanels = (id: string) =>
-	Array.from({ length: 10 }).map((_, i) => ({
+	Array.from({ length: 8 }).map((_, i) => ({
 		name: `${id} ${i}`,
 		width: randomInt(5),
 		content: loremIpsum({ count: randomInt(5) }),

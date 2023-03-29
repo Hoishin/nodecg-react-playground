@@ -14,6 +14,8 @@ interface Props {
 	left: number;
 	onElementResize: (size: { width: number; height: number }) => void;
 	onDrag: (x: number, y: number) => void;
+	onStartDrag: () => void;
+	onStopDrag: () => void;
 }
 
 const Panel: FC<Props> = ({
@@ -24,8 +26,10 @@ const Panel: FC<Props> = ({
 	name,
 	content,
 	onDrag,
+	onStartDrag,
+	onStopDrag,
 }) => {
-	const [focused, setFocused] = useState(false);
+	const [dragged, setDragged] = useState(false);
 	const [containerRef, containerSize] = useElementResize<HTMLDivElement>();
 
 	useEffect(() => {
@@ -34,11 +38,16 @@ const Panel: FC<Props> = ({
 
 	return (
 		<Draggable
-			onStart={() => setFocused(true)}
-			onStop={() => setFocused(false)}
-			onDrag={(_, data) => {
-				onDrag(left + data.x, top + data.y);
+			position={{ x: left, y: top }}
+			onStart={() => {
+				setDragged(true);
+				onStartDrag();
 			}}
+			onStop={() => {
+				setDragged(false);
+				onStopDrag();
+			}}
+			onDrag={(_, data) => onDrag(data.x, data.y)}
 		>
 			<Card
 				ref={containerRef}
@@ -46,12 +55,10 @@ const Panel: FC<Props> = ({
 				sx={{
 					position: "absolute",
 					width,
-					top,
-					left,
-					transitionProperty: "top, left",
+					transitionProperty: dragged ? "none" : "top, left, transform",
 					transitionDuration: "0.2s",
-					zIndex: focused ? 100 : 0,
-					backgroundColor: focused ? "primary.main" : "background.paper",
+					transitionDelay: "0s",
+					zIndex: dragged ? 100 : 0,
 				}}
 			>
 				<CardHeader title={name} />

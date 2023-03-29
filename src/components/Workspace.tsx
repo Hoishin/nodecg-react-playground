@@ -24,140 +24,275 @@ interface PanelPosition {
 	right: number;
 }
 
-interface Coordinate {
+interface Corner {
 	x: number;
 	y: number;
+	topAdjacent: PanelPosition | null;
+	leftAdjacent: PanelPosition | null;
 }
 
-const Workspace: FC<Props> = (props) => {
-	const [containerRef, { width: containerWidth }] = useElementResize();
-	const [panelSizes, setPanelSizes] = useState<Size[]>([]);
+const checkPanelOverlap = (panel1: PanelPosition, panel2: PanelPosition) => {
+	return (
+		panel1.left - GAP < panel2.right &&
+		panel2.left < panel1.right + GAP &&
+		panel1.top - GAP < panel2.bottom &&
+		panel2.top < panel1.bottom + GAP
+	);
+};
 
-	const [panelPositions, setPanelPositions] = useState<PanelPosition[]>([]);
-	const [corners, setCorners] = useState<Coordinate[]>([]);
+class CornerStore {
+	readonly corners: Corner[] = [
+		{ x: 0, y: 0, topAdjacent: null, leftAdjacent: null },
+	];
 
-	const [panels, setPanels] = useState(props.panels);
+	add(newCorner: Corner) {
+		const existingCorner = this.corners.find(
+			(corner) => corner.x === newCorner.x && corner.y === newCorner.y
+		);
+		if (!existingCorner) {
+			this.corners.push(newCorner);
+			return;
+		}
+		// Check if the new corner has a closer top adjacent
+		if (
+			existingCorner.topAdjacent &&
+			newCorner.topAdjacent &&
+			newCorner.topAdjacent.left < existingCorner.topAdjacent.left
+		) {
+			existingCorner.topAdjacent = newCorner.topAdjacent;
+		}
+		// Check if the new corner has a closer left adjacent
+		if (
+			existingCorner.leftAdjacent &&
+			newCorner.leftAdjacent &&
+			newCorner.leftAdjacent.top < existingCorner.leftAdjacent.top
+		) {
+			existingCorner.leftAdjacent = newCorner.leftAdjacent;
+		}
+	}
+}
+
+const Workspace: FC<Props> = ({ panels }) => {
+	const [containerRef, { width: containerWidth, height: containerHeight }] =
+		useElementResize();
+	const [panelSizes, setPanelSizes] = useState<Size[]>(() => []);
+	const [panelPositions, setPanelPositions] = useState<PanelPosition[]>(() =>
+		panels.map(() => ({ top: 0, left: 0, bottom: 0, right: 0 }))
+	);
+
+	const [draggedPanel, setDraggedPanel] = useState<{
+		index: number;
+		top: number;
+		left: number;
+	}>();
+
+	const [positionOrder, setPositionOrder] = useState(() =>
+		panels.map((_, i) => i)
+	);
+
+	const [corners, setCorners] = useState<Corner[]>([]);
 
 	useEffect(() => {
-		setPanels(props.panels);
-	}, [props.panels]);
+		setPositionOrder((positionOrder) => {
+			const newOrder = panelPositions
+				.map((panelPosition, i) => {
+					if (i === draggedPanel?.index) {
+						console.log(draggedPanel);
+						return {
+							index: i,
+							left: draggedPanel.left,
+							top: draggedPanel.top,
+							right:
+								draggedPanel.left + panelPosition.right - panelPosition.left,
+							bottom:
+								draggedPanel.top + panelPosition.bottom - panelPosition.top,
+						};
+					}
+					return { ...panelPosition, index: i };
+				})
+				.sort((a, b) => {
+					return a.top - b.top || a.left - b.left;
+				})
+				.map((position) => position.index);
+			const isSameOrder = positionOrder.every((index, i) => index === i);
+			return isSameOrder ? positionOrder : newOrder;
+		});
+	}, [draggedPanel, panelPositions]);
 
 	useEffect(() => {
 		if (containerWidth === 0 || panelSizes.length === 0) {
 			return;
 		}
-
-		const _panelPositions: PanelPosition[] = [];
-		const _corners: Coordinate[] = [{x: 0, y: 0}];
-
-		const addCorner = (x: number, y: number) => {
-			_corners.push({ x, y });
-		};
-
-		for (const [i, size] of panelSizes.entries()) {
-			let fittingCorner: Coordinate | undefined;
-			for (const corner of _corners) {
-				const tmpRight = corner.x + size.width;
-				if (containerWidth < tmpRight && corner.x !== 0) {
-					continue;
-				}
-				const tmpBottom = corner.y + size.height;
-				const overlapsWithOtherPanel = _panelPositions.some(
-					(position) =>
-						position.left - GAP < tmpRight &&
-						corner.x < position.right + GAP &&
-						position.top - GAP < tmpBottom &&
-						corner.y < position.bottom + GAP
-				);
-				if (overlapsWithOtherPanel) {
-					continue;
-				}
-				if (
-					!fittingCorner ||
-					corner.y < fittingCorner.y ||
-					(corner.y === fittingCorner.y && corner.x < fittingCorner.x)
-				) {
-					fittingCorner = corner;
-				}
-			}
-
-			if (!fittingCorner) {
-				continue;
-			}
-
-			const top = fittingCorner.y;
-			const left = fittingCorner.x;
-			const bottom = top + size.height;
-			const right = left + size.width;
-
-			const rightPanels = _panelPositions.filter(
-				(position) => right < position.right && position.bottom < bottom
-			);
-			rightPanels.sort((a, b) => b.bottom - a.bottom);
-			rightPanels.push({
-				top: -GAP,
-				bottom: -GAP,
-				left: 0,
-				right: containerWidth,
-			});
-			let maxX = containerWidth;
-			for (const rightPanel of rightPanels) {
-				if (rightPanel.left < maxX) {
-					maxX = rightPanel.left;
-					addCorner(right + GAP, rightPanel.bottom + GAP);
-					if (rightPanel.left - GAP <= right) {
-						break;
-					}
-				}
-			}
-
-			const belowPanels = _panelPositions.filter(
-				(position) => bottom < position.bottom && position.right < right
-			);
-			belowPanels.sort((a, b) => b.right - a.right);
-			belowPanels.push({ top: 0, bottom: Infinity, left: -GAP, right: -GAP });
-			let maxY = Infinity;
-			for (const belowPanel of belowPanels) {
-				if (belowPanel.top < maxY) {
-					maxY = belowPanel.top;
-					addCorner(belowPanel.right + GAP, bottom + GAP);
-					if (belowPanel.top - GAP <= bottom) {
-						break;
-					}
-				}
-			}
-
-			_panelPositions[i] = { top, left, bottom, right };
+		if (panelSizes.every((size) => size.width === 0)) {
+			return;
 		}
 
-		setPanelPositions(_panelPositions);
-		setCorners(_corners);
-	}, [panelSizes, containerWidth]);
+		setPanelPositions((panelPositions) => {
+			const _panelPositions: PanelPosition[] = [];
+			const cornerStore = new CornerStore();
+
+			for (const i of positionOrder) {
+				const size = panelSizes[i];
+				const oldPosition = panelPositions[i];
+				if (!size || !oldPosition) {
+					throw new Error("literally impossible");
+				}
+
+				let fittingCorner: Corner | undefined;
+
+				for (const corner of cornerStore.corners) {
+					const left = corner.x;
+					const top = corner.y;
+					const right = corner.x + size.width;
+					const bottom = corner.y + size.height;
+					// Check if the panel is outside the container unless it's on the first column
+					if (containerWidth < right && corner.x !== 0) {
+						continue;
+					}
+					// Check if the panel overlaps with another
+					const overlapsWithOtherPanel = _panelPositions.some((position) =>
+						checkPanelOverlap(position, { left, top, right, bottom })
+					);
+					if (overlapsWithOtherPanel) {
+						continue;
+					}
+					if (!fittingCorner) {
+						fittingCorner = corner;
+						continue;
+					}
+					const containerRatio = containerWidth / containerHeight;
+					const distance = Math.sqrt(
+						(oldPosition.left - left) ** 2 +
+							((oldPosition.top - top) * containerRatio) ** 2
+					);
+					const distanceToFittingCorner = Math.sqrt(
+						(oldPosition.left - fittingCorner.x) ** 2 +
+							((oldPosition.top - fittingCorner.y) * containerRatio) ** 2
+					);
+					if (distance < distanceToFittingCorner) {
+						if (
+							corner.y < fittingCorner.y ||
+							(corner.y === fittingCorner.y && corner.x < fittingCorner.x)
+						) {
+							fittingCorner = corner;
+							continue;
+						}
+					}
+				}
+
+				if (!fittingCorner) {
+					throw new Error("literally impossible");
+				}
+
+				const top = fittingCorner.y;
+				const left = fittingCorner.x;
+				const bottom = top + size.height;
+				const right = left + size.width;
+
+				const newPosition = { top, left, bottom, right };
+
+				// Add new corner this panel creates on the right
+				const rightPanels = _panelPositions
+					.filter(
+						(position) => right < position.right && position.bottom < bottom
+					)
+					.sort((a, b) => b.bottom - a.bottom);
+				rightPanels.push({
+					top: -GAP,
+					bottom: -GAP,
+					left: 0,
+					right: containerWidth,
+				});
+				let maxX = containerWidth;
+				for (const rightPanel of rightPanels) {
+					if (rightPanel.left < maxX) {
+						maxX = rightPanel.left;
+						cornerStore.add({
+							x: right + GAP,
+							y: rightPanel.bottom + GAP,
+							topAdjacent: rightPanel.bottom > 0 ? rightPanel : null,
+							leftAdjacent: newPosition,
+						});
+						if (rightPanel.left - GAP <= right) {
+							break;
+						}
+					}
+				}
+
+				// Add new corner this panel creates on the bottom
+				const belowPanels = _panelPositions
+					.filter(
+						(position) => bottom < position.bottom && position.right < right
+					)
+					.sort((a, b) => b.right - a.right);
+				belowPanels.push({ top: 0, bottom: Infinity, left: -GAP, right: -GAP });
+				let maxY = Infinity;
+				for (const belowPanel of belowPanels) {
+					if (belowPanel.top < maxY) {
+						maxY = belowPanel.top;
+						cornerStore.add({
+							x: belowPanel.right + GAP,
+							y: bottom + GAP,
+							topAdjacent: newPosition,
+							leftAdjacent: belowPanel.right > 0 ? belowPanel : null,
+						});
+						if (belowPanel.top - GAP <= bottom) {
+							break;
+						}
+					}
+				}
+
+				_panelPositions[i] = newPosition;
+			}
+
+			setCorners(cornerStore.corners);
+			return _panelPositions;
+		});
+	}, [panelSizes, containerWidth, containerHeight, positionOrder]);
 
 	return (
 		<Box ref={containerRef} position="relative" width="100%" height="100%">
 			{panels.map((panel, i) => {
 				const position = panelPositions[i];
+				const size = panelSizes[i];
 				return (
 					<Panel
 						key={panel.name}
 						name={panel.name}
 						content={panel.content}
 						width={128 + 144 * (panel.width - 1)}
-						top={position?.top ?? 0}
-						left={position?.left ?? 0}
-						onDrag={(x, y) => {
-							console.log(x, y);
+						left={
+							i === draggedPanel?.index
+								? draggedPanel.left
+								: position?.left ?? 0
+						}
+						top={
+							i === draggedPanel?.index ? draggedPanel.top : position?.top ?? 0
+						}
+						onStartDrag={() => {
+							if (position) {
+								setDraggedPanel({
+									index: i,
+									left: position.left,
+									top: position.top,
+								});
+							}
+						}}
+						onStopDrag={() => setDraggedPanel(undefined)}
+						onDrag={(x: number, y: number) => {
+							setDraggedPanel((draggedPanel) => {
+								if (draggedPanel?.index !== i) {
+									return undefined;
+								}
+								if (draggedPanel.left === x && draggedPanel.top === y) {
+									return draggedPanel;
+								}
+								return { index: i, left: x, top: y };
+							});
 						}}
 						onElementResize={({ width, height }) => {
-							if (width === 0 || height === 0) {
-								return;
-							}
 							setPanelSizes((panelSizes) => {
-								if (
-									width === panelSizes[i]?.width &&
-									height === panelSizes[i]?.height
-								) {
+								if (width === size?.width && height === size?.height) {
 									return panelSizes;
 								}
 								const newPanelSizes = [...panelSizes];
